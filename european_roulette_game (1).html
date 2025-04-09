@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>European Roulette Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+
+        .wheel-container {
+            position: relative;
+            margin: 50px auto;
+            width: 300px;
+            height: 300px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #444;
+            background: conic-gradient(
+                red 0deg 9.73deg,
+                black 9.73deg 19.46deg,
+                red 19.46deg 29.19deg,
+                black 29.19deg 38.92deg,
+                red 38.92deg 48.65deg,
+                black 48.65deg 58.38deg,
+                red 58.38deg 68.11deg,
+                black 68.11deg 77.84deg,
+                red 77.84deg 87.57deg,
+                black 87.57deg 97.3deg,
+                red 97.3deg 107.03deg,
+                black 107.03deg 116.76deg,
+                red 116.76deg 126.49deg,
+                black 126.49deg 136.22deg,
+                red 136.22deg 145.95deg,
+                black 145.95deg 155.68deg,
+                red 155.68deg 165.41deg,
+                black 165.41deg 175.14deg,
+                red 175.14deg 184.87deg,
+                black 184.87deg 194.6deg,
+                red 194.6deg 204.33deg,
+                black 204.33deg 214.06deg,
+                red 214.06deg 223.79deg,
+                black 223.79deg 233.52deg,
+                red 233.52deg 243.25deg,
+                black 243.25deg 253.98deg,
+                red 253.98deg 263.71deg,
+                black 263.71deg 273.44deg,
+                red 273.44deg 283.17deg,
+                black 283.17deg 292.9deg,
+                red 292.9deg 302.63deg,
+                black 302.63deg 312.36deg,
+                red 312.36deg 322.09deg,
+                black 322.09deg 331.82deg,
+                red 331.82deg 341.55deg,
+                black 341.55deg 351.28deg,
+                green 351.28deg 360deg
+            );
+            transition: transform 4s ease-out;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid #222;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        .result, .balance, .history {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .won { color: green; }
+        .lost { color: red; }
+    </style>
+</head>
+<body>
+
+    <h1>European Roulette Game</h1>
+
+    <label>Bet Number (0–36):</label>
+    <input type="number" id="betNumber" min="0" max="36">
+    <br>
+    <label>Or Bet Color:</label>
+    <select id="betColor">
+        <option value="">None</option>
+        <option value="red">Red</option>
+        <option value="black">Black</option>
+        <option value="green">Green (0)</option>
+    </select>
+    <br>
+    <label>Or Bet Even/Odd:</label>
+    <select id="betEvenOdd">
+        <option value="">None</option>
+        <option value="even">Even</option>
+        <option value="odd">Odd</option>
+    </select>
+    <br>
+    <label>Or Bet High/Low:</label>
+    <select id="betHighLow">
+        <option value="">None</option>
+        <option value="high">High (19–36)</option>
+        <option value="low">Low (1–18)</option>
+    </select>
+    <br>
+    <label>Bet Amount ($):</label>
+    <input type="number" id="betAmount" min="1">
+    <br>
+    <button onclick="startGame()">Start Game</button>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel"></div>
+    </div>
+
+    <div class="result" id="result">Place your bet and start!</div>
+    <div class="balance" id="balance">Balance: $100</div>
+    <div class="history" id="history">History: None yet</div>
+
+    <script>
+        let balance = 100;
+        let userBetNumber = null;
+        let userBetColor = "";
+        let userBetEvenOdd = "";
+        let userBetHighLow = "";
+        let userBetAmount = 0;
+        let history = [];
+
+        function startGame() {
+            userBetNumber = document.getElementById('betNumber').value;
+            userBetColor = document.getElementById('betColor').value;
+            userBetEvenOdd = document.getElementById('betEvenOdd').value;
+            userBetHighLow = document.getElementById('betHighLow').value;
+            userBetAmount = parseInt(document.getElementById('betAmount').value);
+
+            if ((!userBetNumber && !userBetColor && !userBetEvenOdd && !userBetHighLow) || isNaN(userBetAmount) || userBetAmount <= 0 || userBetAmount > balance) {
+                alert("Enter valid bet and amount.");
+                return;
+            }
+
+            document.getElementById('result').innerText = "Spinning the wheel...";
+            spinRoulette();
+        }
+
+        function spinRoulette() {
+            if (balance < userBetAmount) {
+                document.getElementById('result').innerHTML = "<span class='lost'>Not enough balance. Game over.</span>";
+                return;
+            }
+
+            const wheel = document.getElementById('wheel');
+            const resultNumber = Math.floor(Math.random() * 37); // Numbers 0-36
+            const degreesPerNumber = 360 / 37;
+            const targetAngle = 3600 + (360 - (resultNumber * degreesPerNumber)); // Spin a few rounds before landing
+            wheel.style.transform = `rotate(${targetAngle}deg)`;
+
+            setTimeout(() => {
+                const color = resultNumber === 0 ? 'green' : (resultNumber % 2 === 0 ? 'red' : 'black');
+                let win = false;
+                let payout = 0;
+                let resultText = `Result: ${resultNumber} (${color})<br>`;
+
+                // Number bet
+                if (userBetNumber !== "" && parseInt(userBetNumber) === resultNumber) {
+                    win = true;
+                    payout = userBetAmount * 35;
+                    resultText += `<span class='won'>You WON $${payout} on number!</span>`;
+                }
+                // Color bet
+                else if (userBetColor && userBetColor === color) {
+                    win = true;
+                    payout = userBetColor === "green" ? userBetAmount * 10 : userBetAmount * 2;
+                    resultText += `<span class='won'>You WON $${payout} on color!</span>`;
+                }
+                // Even/Odd bet
+                else if (userBetEvenOdd && userBetEvenOdd === (resultNumber % 2 === 0 ? 'even' : 'odd')) {
+                    win = true;
+                    payout = userBetAmount * 2;
+                    resultText += `<span class='won'>You WON $${payout} on ${userBetEvenOdd}!</span>`;
+                }
+                // High/Low bet
+                else if (userBetHighLow && userBetHighLow === (resultNumber <= 18 ? 'low' : 'high')) {
+                    win = true;
+                    payout = userBetAmount * 2;
+                    resultText += `<span class='won'>You WON $${payout} on ${userBetHighLow}!</span>`;
+                }
+
+                if (win) {
+                    balance += payout;
+                } else {
+                    balance -= userBetAmount;
+                }
+
+                document.getElementById('result').innerHTML = resultText;
+                document.getElementById('balance').innerText = `Balance: $${balance}`;
+
+                // Update history
+                history.unshift(`${resultNumber} (${color})`);
+                if (history.length > 5) history.pop();
+                document.getElementById('history').innerText = "History: " + history.join(", ");
+            }, 4000);
+        }
+    </script>
+
+</body>
+</html>
